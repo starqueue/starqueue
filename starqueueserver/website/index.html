@@ -1,0 +1,383 @@
+<!--#include file="pagetop.html" -->
+<!--#include file="banner.html" -->
+<!--#include file="menu.html" -->
+
+<br/>
+<h2>StarQueue: a free hosted HTTP message queue.</h2>
+<hr/>
+<!--<h2 class="mt-0 sublogo text-danger">StarQueue project has not yet started please come back later.</h2>-->
+<!--
+<div>
+    StarQueue also offers a <a href="paidsubscription.html">paid subscriptions</a>. All paid subscriptions are free
+    until September 2021.<br/>
+</div>
+<br/>
+-->
+<div class="text-success">
+    StarQueue has reached a minimum-viable product level of quality and is in beta test.<br/>
+    <br/>
+    We'd love to <a href="contact.html">hear your thoughts, ideas and feedback</a>.<br/>
+</div>
+
+<script>
+    function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    window.accountid = undefined
+    window.AuthToken = undefined
+    window.apihost = "https://api.starqueue.org"
+</script>
+
+
+<div style="font-size: 1.4em">
+
+    <hr/>
+    <h2>Instantly try StarQueue:</h2><br/>
+
+    Step 1: Generate accountid:
+    <div id="createAccount">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <form class="form-inline" action="#" method="post">
+                        <button id="createGuestAccountButton"
+                                class="btn-md btn-primary">generate
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <br/>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <span id="outputTextCreateAccount" class="text-primary"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createGuestAccount(event) {
+            event.preventDefault()
+            createAccount("")
+        }
+
+        function createAccount(EmailAddress) {
+            let url = new URL(`${window.apihost}/accountcreate`)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {//Call a function when the state changes.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText)
+                    document.getElementById("MessageBody").value = ''
+                    document.getElementById("outputTextSend").innerHTML = ``;
+                    document.getElementById("outputTextQueueClear").innerHTML = ``;
+                    document.getElementById("outputTextReceive").innerHTML = '';
+                    let data = JSON.parse(xhr.responseText);
+                    window.accountid = data.accountid
+                    window.AuthToken = data.AuthToken
+                    let message = `Success! Created accountid ${data.accountid}<br/>`
+                    //message += `This is your auth token: ${data.AuthToken}<br/>`
+                    document.getElementById("outputTextCreateAccount").innerHTML = message;
+                    document.getElementById("createAccount").style.display = "none";
+                    makeCurlExamples();
+                } else {
+                    document.getElementById("outputTextCreateAccount").innerHTML = `Error: ${xhr.responseText}`;
+                    makeCurlExamples();
+                }
+                if (xhr.readyState === 4 && xhr.status !== 200) {
+                    console.log(xhr.responseText)
+                    document.getElementById("MessageBody").value = ''
+                    document.getElementById("outputTextSend").innerHTML = ``;
+                    document.getElementById("outputTextQueueClear").innerHTML = ``;
+                    document.getElementById("outputTextReceive").innerHTML = '';
+                    document.getElementById("outputTextCreateAccount").innerHTML = `Error: ${xhr.responseText}`;
+                    makeCurlExamples();
+                }
+            }
+            let postdata = {
+                "Version": 1,
+                "EmailAddress": EmailAddress,
+                "recaptcha": ""
+            }
+            xhr.send(JSON.stringify(postdata));
+        }
+
+        const clearoutputTextCreateAccount = () => document.getElementById("outputTextCreateAccount").innerHTML = ''
+        document.getElementById("createGuestAccountButton").addEventListener("click", createGuestAccount, false);
+        document.getElementById("createGuestAccountButton").addEventListener("focus", clearoutputTextCreateAccount, false);
+    </script>
+
+    Step 2: Enter a queue name:
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                    <input type="text"
+                           id="QueueName"
+                           placeholder="queue name"
+                           size="40"
+                           value="myexamplequeue"
+                           class="input-md"/>
+                    <span id="outputTextQueueName" class="text-primary"></span>
+            </div>
+        </div>
+    </div>
+    <script>
+        function removeIllegalChars() {
+            let queueName = document.getElementById("QueueName").value
+            if (queueName.length < 1) {
+                document.getElementById("QueueName").value = "myexamplequeue"
+                return
+            }
+            const valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+            for (var i = 0; i < queueName.length; i++) {
+                if (valid.includes(queueName[i]) === false) {
+                    document.getElementById("QueueName").value = queueName.replace(queueName[i], "")
+                }
+            }
+        }
+
+        document.getElementById("QueueName").addEventListener("focus", removeIllegalChars, false);
+        document.getElementById("QueueName").addEventListener("blur", removeIllegalChars, false);
+        document.getElementById("QueueName").addEventListener("keyup", removeIllegalChars, false);
+    </script>
+
+
+    <br/>
+    Step 3: (optionally) clear the queue:
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 w-100">
+                <form class="form-inline" action="#" method="post">
+                    <button id="queueClear"
+                            type="button"
+                            class="btn-md btn-primary">clear queue
+                    </button>
+                    <span id="outputTextQueueClear" class="text-primary"></span>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function queueClear(event) {
+            event.preventDefault()
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "outputTextQueueClear").innerText = `Hit 'generate' button above.`
+                return;
+            }
+            let queuename = document.getElementById("QueueName").value
+            if (queuename === undefined) {
+                document.getElementById("outputTextQueueClear").innerHTML = "Create a queue first."
+                return
+            }
+            document.getElementById("outputTextQueueClear").innerHTML = ""
+            let accountId = window.accountid
+            let url = new URL(`${window.apihost}/queueclear/${accountId}/${queuename}`)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " +  window.AuthToken);
+            xhr.onreadystatechange = function () {//Call a function when the state changes.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let output = JSON.stringify(JSON.parse(xhr.responseText), null, 4)
+                    //document.getElementById("outputTextQueueClear").innerHTML = `<br/><pre>${output}</pre>`;
+                    document.getElementById("outputTextQueueClear").innerHTML = `OK done.`;
+                    document.getElementById("outputTextReceive").innerHTML = '';
+                    document.getElementById("outputTextSend").innerHTML = '';
+                    makeCurlExamples();
+                }
+            }
+            let postdata = {
+                "Version": 1
+            }
+            xhr.send(JSON.stringify(postdata));
+        }
+
+        document.getElementById("queueClear").addEventListener("click", queueClear, false);
+    </script>
+
+
+    <br/>
+    Step 4: receive a message:
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 w-100">
+                <form class="form-inline" action="#" method="post">
+                    <button id="messageReceive" type="button" class="btn-md btn-primary">listen to queue
+                    </button>
+                    <span id="outputTextReceive" class="bg-success text-white m-1"></span>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function messageReceive(event) {
+            event.preventDefault()
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "outputTextReceive").innerText = `Hit 'generate' button above.`
+                return;
+            }
+            let queuename = document.getElementById("QueueName").value
+            document.getElementById("outputTextReceive").innerHTML = "Listening for messages ...."
+            document.getElementById("outputTextSend").innerHTML = '';
+            document.getElementById("outputTextQueueClear").innerHTML = '';
+            let accountId = window.accountid
+            let url = new URL(`${window.apihost}/messagereceive/${accountId}/${queuename}`)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " +  window.AuthToken);
+            xhr.onreadystatechange = function () {//Call a function when the state changes.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let messsageBody = JSON.parse(xhr.responseText)
+                    try {
+                        MessageBodyBase64 = messsageBody.MessageReceiveResult[0].MessageBody
+                        MessageBodyOriginal = decodeURIComponent(escape(window.atob(MessageBodyBase64)))
+                        let output = JSON.stringify(JSON.parse(xhr.responseText), null, 4)
+                        let innerHTML = `Got message: ${MessageBodyOriginal}`;
+                        //let innerHTML = `<br/>Got message: ${MessageBodyOriginal}<br/>Raw response: <br/><pre>${output}</pre>`;
+                        document.getElementById("outputTextReceive").innerHTML = innerHTML;
+                        document.getElementById("outputTextQueueClear").innerHTML = ``;
+                    } catch (e) {
+                        let innerHTML = `Timed out without receiving a message.`;
+                        document.getElementById("outputTextReceive").innerHTML = innerHTML;
+                        document.getElementById("outputTextQueueClear").innerHTML = ``;
+                    }
+                    makeCurlExamples();
+                }
+            }
+            let postdata = {
+                "Version": 1
+            }
+            xhr.send(JSON.stringify(postdata));
+        }
+
+        document.getElementById("messageReceive").addEventListener("click", messageReceive, false);
+    </script>
+
+    <br/>
+    Step 4: send a message:
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <form class="form-inline" action="#" method="post">
+                    <input type="text"
+                           id="MessageBody"
+                           name="search"
+                           class="input-md">
+                    <button id="messageSend" class="btn-md btn-primary">send</button>
+                    <span id="outputTextSend" class="text-primary"></span>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function messageSend(event) {
+            event.preventDefault()
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "outputTextSend").innerText = `Hit 'generate' button above.`
+                return;
+            }
+            let queuename = document.getElementById("QueueName").value
+            let messageBody = document.getElementById("MessageBody").value
+            console.log(messageBody)
+            if (messageBody.length < 1) {
+                document.getElementById("outputTextSend").innerHTML = "Must be more than 1 character."
+                return
+            } else {
+                document.getElementById("outputTextSend").innerHTML = ""
+            }
+            let accountId = window.accountid
+            let url = new URL(`${window.apihost}/messagesend/${accountId}/${queuename}`)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " +  window.AuthToken);
+            xhr.onreadystatechange = function () {//Call a function when the state changes.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    document.getElementById("MessageBody").value = ''
+                    document.getElementById("outputTextSend").innerHTML = `Sent OK`;
+                    document.getElementById("outputTextQueueClear").innerHTML = ``;
+                    /*
+                    let output = JSON.stringify(JSON.parse(xhr.responseText), null, 4)
+                    document.getElementById("outputTextSend").innerHTML = `<br/><pre>${output}</pre>`;
+                     */
+                }
+                makeCurlExamples();
+            }
+            //https://stackoverflow.com/a/45844934
+            messageBody = btoa(unescape(encodeURIComponent(messageBody)))
+            let postdata = {
+                "MessageBody": messageBody,
+                "Version": 1
+            }
+            xhr.send(JSON.stringify(postdata));
+        }
+
+        const clearSendOutputMessage = () => document.getElementById("outputTextSend").innerHTML = ''
+        document.getElementById("messageSend").addEventListener("click", messageSend, false);
+        document.getElementById("messageSend").addEventListener("focus", clearSendOutputMessage, false);
+    </script>
+</div>
+<div>
+
+    <hr/>
+    <h2>The same commands in curl:</h2><br/>
+    <br/>
+    <div>
+        Clear the queue:
+        <div class="code" style="overflow-x: scroll;" id="curlQueueClear">
+        </div>
+        Send a message:
+        <div class="code" style="overflow-x: scroll;" id="curlSendAMessage">
+        </div>
+        Receive a message:
+        <div class="code" style="overflow-x: scroll;" id="curlReceiveAMessage">
+        </div>
+    </div>
+    <script>
+        function makeCurlExamples() {
+            let queueName = document.getElementById("QueueName").value
+
+            let postData = {"Version": 1}
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "curlQueueClear").innerText = `Hit 'generate' button above.`
+            } else {
+                document.getElementById(id = "curlQueueClear").innerText =
+                    `curl -d '${JSON.stringify(postData)}' -H "Content-Type: application/json" -H "authorization: Bearer ${window.AuthToken}" "https://api.starqueue.org/queueclear/${window.accountid}/${queueName}"`
+            }
+
+            postData = {
+                "Version": 1,
+                "MessageBody": "44OP44Ot44O844Kt44OG44KjSGVsbG9LaXR0eQ=="
+            }
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "curlSendAMessage").innerText = `Hit 'generate' button above.`
+            } else {
+                document.getElementById(id = "curlSendAMessage").innerText =
+                    `curl -d '${JSON.stringify(postData)}' -H "Content-Type: application/json" -H "authorization: Bearer ${window.AuthToken}" "https://api.starqueue.org/messagesend/${window.accountid}/${queueName}"`
+            }
+
+            postData = {
+                "Version": 1
+            }
+            if (window.AuthToken === undefined) {
+                document.getElementById(id = "curlReceiveAMessage").innerText = `Hit 'generate' button above.`
+            } else {
+                document.getElementById(id = "curlReceiveAMessage").innerText =
+                    `curl -d '${JSON.stringify(postData)}' -H "Content-Type: application/json" -H "authorization: Bearer ${window.AuthToken}"  "https://api.starqueue.org/messagereceive/${window.accountid}/${queueName}"`
+            }
+
+        }
+
+        makeCurlExamples()
+    </script>
+
+    <!--#include file="pagebottom.html" -->
+

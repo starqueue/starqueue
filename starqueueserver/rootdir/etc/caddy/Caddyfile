@@ -1,0 +1,47 @@
+# The Caddyfile is an easy way to configure your Caddy web server.
+#
+# Unless the file starts with a global options block, the first
+# uncommented line is always the address of your site.
+#
+# To use your own domain name (with automatic HTTPS), first make
+# sure your domain's A/AAAA DNS records are properly pointed to
+# this machine's public IP, then replace ":80" below with your
+# domain name.
+
+www.starqueue.org {
+    # Set this path to your site's directory.
+    #root * /usr/share/caddy
+    # Enable the static file server.
+    #file_server
+    reverse_proxy /subscribers localhost:8080
+    reverse_proxy / localhost:9000
+    reverse_proxy /*.html localhost:9000
+
+    log {
+        format single_field common_log
+        output file /var/log/caddy/access_www.log {
+            roll_size 1gb
+            roll_keep 5
+            roll_keep_for 720h
+	}
+    }
+}
+
+starqueue.org {
+	redir https://www.starqueue.org{uri}
+}
+
+api.starqueue.org {
+    reverse_proxy localhost:8000 localhost:8001 localhost:8002 localhost:8003
+    log {
+        format single_field common_log
+        output file /var/log/caddy/access_api.log {
+            roll_size 1gb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+    }
+}
+
+
+

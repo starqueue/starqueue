@@ -1,0 +1,14 @@
+[Unit]
+Description=StarQueue dbnotification server
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/venv3.8/bin/python3 -u /opt/starqueueserver/dbnotificationserver/dbnotificationserver.py
+Restart=always
+RestartSec=100ms
+User=ubuntu
+WorkingDirectory=/opt/starqueueserver
+
+[Install]
+WantedBy=multi-user.target

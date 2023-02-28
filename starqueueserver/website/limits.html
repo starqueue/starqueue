@@ -1,0 +1,22 @@
+<!--#include file="pagetop.html" -->
+<!--#include file="banner.html" -->
+<!--#include file="menu.html" -->
+<br/>
+<h2>StarQueue limits.</h2>
+<hr/>
+
+<br/>
+<br/>
+<ul>
+    <li>Send up to 50,000 messages per month.</li>
+    <li>Maximum queue size 1,000 unreceived messages.</li>
+    <li>Maximum size of the MessageBody field is 262144 bytes (256KB).</li>
+    <li>MessageRetentionPeriod (unreceived messages are deleted after this amount of time) is 4 hours.</li>
+</ul>
+
+<br/>
+Exceeding limits:<br/>
+StarQueue returns status 429 "Too Many Requests" when queue message sends is exceeded.
+
+<!--#include file="pagebottom.html" -->
+

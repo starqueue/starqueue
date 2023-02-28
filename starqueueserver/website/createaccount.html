@@ -1,0 +1,115 @@
+<!--#include file="pagetop.html" -->
+<!--#include file="banner.html" -->
+<!--#include file="menu.html" -->
+
+<br/>
+<h2>Create a StarQueue account:</h2>
+<hr/>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script type="text/javascript">
+    var onloadCallback = function () {
+        alert("grecaptcha is ready!");
+    };
+</script>
+
+<script>
+    function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    window.accountid = undefined
+    window.AuthToken = undefined
+    window.apihost = "https://api.starqueue.org"
+</script>
+
+
+<div style="font-size: 1.4em">
+
+    <div id="createAccount">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <form class="form-inline" action="#" method="post">
+                        <input type="text"
+                               class="input-md mb-2"
+                               id="EmailAddress"
+                               size="60"
+                               placeholder="email address"
+                        >
+                        <div
+                                class="g-recaptcha mb-1"
+                                data-sitekey="6LctCTcbAAAAACV5WRWFsV992E3dSGwKlk6g91np"></div>
+                        <button id="createRealAccountButton"
+                                class="btn-md btn-primary mt-1">create
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <span id="outputTextCreateAccount" class="text-primary"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createRealAccount(event) {
+            event.preventDefault()
+            let recaptcha = grecaptcha.getResponse();
+            if (recaptcha.length === 0) {
+                document.getElementById("outputTextCreateAccount").innerHTML = "ReCaptcha is required";
+                return false;
+            }
+
+            let EmailAddress = document.getElementById("EmailAddress").value
+            if (EmailAddress.length < 1) {
+                document.getElementById("outputTextCreateAccount").innerHTML = "Must be more than 1 character."
+                return
+            } else {
+                document.getElementById("outputTextCreateAccount").innerHTML = ""
+            }
+            createAccount(EmailAddress, recaptcha)
+        }
+
+        function createAccount(EmailAddress, recaptcha) {
+            let url = new URL(`${window.apihost}/accountcreate`)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {//Call a function when the state changes.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText)
+                    let data = JSON.parse(xhr.responseText);
+                    window.accountid = data.accountid
+                    window.AuthToken = data.AuthToken
+                    let message = `Account created successfully!<br/>`
+                    message += `This is your password: ${data.AccountPassword}<br/>`
+                    message += `This is your accountid: ${data.accountid}<br/>`
+                    document.getElementById("outputTextCreateAccount").innerHTML = message;
+                    document.getElementById("createAccount").style.display = "none";
+                } else {
+                    document.getElementById("outputTextCreateAccount").innerHTML = `Error: ${xhr.responseText}`;
+                }
+            }
+            let postdata = {
+                "Version": 1,
+                "recaptcha": recaptcha,
+                "EmailAddress": EmailAddress
+            }
+            xhr.send(JSON.stringify(postdata));
+        }
+
+        const clearoutputTextCreateAccount = () => document.getElementById("outputTextCreateAccount").innerHTML = ''
+        document.getElementById("createRealAccountButton").addEventListener("click", createRealAccount, false);
+        document.getElementById("createRealAccountButton").addEventListener("focus", clearoutputTextCreateAccount, false);
+    </script>
+
+</div>
+<!--#include file="pagebottom.html" -->

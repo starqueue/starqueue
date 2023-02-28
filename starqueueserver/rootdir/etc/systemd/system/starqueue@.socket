@@ -1,0 +1,13 @@
+# https://idea.popcount.org/2019-11-06-creating-sockets/
+
+[Unit]
+Description=Socket for worker %i
+Description=Socket for worker
+PartOf=starqueue@%i.service
+
+[Socket]
+ListenStream=0.0.0.0:800%i
+ReusePort=yes
+
+[Install]
+WantedBy=sockets.target

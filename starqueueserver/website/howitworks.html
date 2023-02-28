@@ -1,0 +1,112 @@
+<!--#include file="pagetop.html" -->
+<!--#include file="banner.html" -->
+<!--#include file="menu.html" -->
+<br/>
+<h2>How StarQueue works:</h2>
+<hr/>
+
+<div>
+
+    <ul>
+        <li>StarQueue is a message queue accessed via HTTPS.</li>
+    </ul>
+
+    <br/>
+    <b>Accessing the API.</b><br/>
+    <ul>
+        <li>To start, you need to <a href="createaccount.html">create an accountid and password</a>.</li>
+        <li>You must submit an "AuthToken" as a header within every API request.</li>
+        <li>You get an "AuthToken" by submitting your password to the authtokenget endpoint.</li>
+        <li>All API requests must be POSTs of json with content type application/json.</li>
+        <li>The endpoint URLs of the API look like this example:</li>
+        <b>https://api.starqueue.org/messagesend/ba4b1fb8-b230-4a3a-8760f1960b6a42f8/examplequeuename</b>
+        <li>The final part of the URL path is the queuename, which is a string.</li>
+        <li>Prior to the queuename is the accountid, which you got when you created your account.</li>
+    </ul>
+
+    <br/>
+    <b>About queues.</b><br/>
+    <ul>
+        <li>To create a queue, simply send a message to a queuename - you do not need to explicitly create a queue.</li>
+        <li>You may use any string for the queuename - just make one up.</li>
+        <li>Queues are virtual - they exist only because there are messages in that queue.</li>
+        <li>The QueuesList endpoint lists the queue names for a given accountid.</li>
+        <li>QueuesList will not list a queue that contains no messages, because queues do not exist without
+            messages in them.
+        </li>
+        <li>The queueclear endpoint unconditionally deletes all messages in the specified queue.</li>
+    </ul>
+
+    <br/>
+    <b>Sending messages.</b><br/>
+    <ul>
+        <li>Send a message by POSTing json data with a MessageBody field to the messagesend endpoint.</li>
+        <li>When sending, the MessageBody field must be base64 encoded.</li>
+    </ul>
+
+    <br/>
+    <b>Message priority.</b><br/>
+    <ul>
+        <li>A Priority may be specified when sending a message.</li>
+        <li>A message with a numerically higher Priority will always be returned before a message with a
+            numerically lower priority. For example, messages with Priority 100 are returned before priority 1.
+        </li>
+    </ul>
+
+    <br/>
+    <b>Message VisibilityTimeout.</b><br/>
+    <ul>
+        <li>A message may be sent with a VisibilityTimeout.</li>
+        <li>The VisibilityTimeout defines how long in seconds the message is hidden from queue receivers.</li>
+        <li>The VisibilityTimeout may be changed for messages already in the queue via the messagechangevisibility
+            endpoint.
+        </li>
+    </ul>
+
+    <br/>
+    <b>Preventing duplicate messages.</b><br/>
+    <ul>
+        <li>A MessageDeduplicationId may be specified when sending a message.</li>
+        <li>If a message is sent and is has the same MessageDeduplicationId as an existing message then it will
+            be accepted by the queue but no message will be created.
+        </li>
+        <li>A MessageDeduplicationTimePeriod may be specified when sending a message.</li>
+        <li>The MessageDeduplicationTimePeriod defines how long in seconds a message should prevent duplicates for.
+        </li>
+    </ul>
+
+    <br/>
+    <b>Receiving messages</b><br/>
+    <ul>
+        <li>You can receive a message by POSTing to the messagereceive endpoint.</li>
+        <li>If a message is available, messagereceive will return it immediately.</li>
+        <li>If no message is available, messagereceive uses long polling, and waits for up to 20 seconds.</li>
+        <li>messagereceive will return up to 10 messages from a single request.</li>
+        <li>You can specify the maximum number of messages (1-10) that messagereceive may return from a single
+            request.
+        </li>
+        <li>When a message has been received, it is no longer visible to be received again for a period of time.
+        </li>
+    </ul>
+
+    <br/>
+    <b>Deleting messages.</b><br/>
+    <ul>
+        <li>You delete a message by passing the ReceiptHandle (which comes from messagereceive) to messagedelete.
+        </li>
+        <li>If you do not delete a received message, then it will, after its VisibilityTimeout expires, appear again
+            in the queue.
+        </li>
+        <li>If a message is received 4 times without being deleted, then the system deletes that message.</li>
+        <li>If a message is received 4 times without being deleted, AND the message was created with a
+            "DeadLetterQueueName", then instead of deleting that message, the message is moved to the specified
+            queue.
+        </li>
+        <li>The queue automatically deletes messages that exceed their MessageRetentionPeriod.</li>
+    </ul>
+
+    <br/>
+</div>
+
+<!--#include file="pagebottom.html" -->
+

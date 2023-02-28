@@ -1,0 +1,16 @@
+[Unit]
+Description=StarQueue server, instance %i
+After=multi-user.target
+Requires=starqueue@%i.socket
+
+[Service]
+Type=simple
+ExecStart=/opt/venv3.8/bin/python3 -u /opt/starqueueserver/starqueueserver.py
+Restart=always
+RestartSec=100ms
+User=ubuntu
+WorkingDirectory=/opt/starqueueserver
+NonBlocking=yes
+
+[Install]
+WantedBy=multi-user.target

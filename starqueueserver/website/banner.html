@@ -1,0 +1,46 @@
+        <div class="row">
+            <div class="col-md-12">
+
+                <form class="form-inline" action="#" method="post">
+                    <div class="float-start">
+                        <h1 class="mt-0 logo">StarQueue</h1>
+                    </div>
+                    <div class="float-end" id="subscribediv">
+                        <input type="email"
+                               id="subscribers"
+                               placeholder="email address"
+                               class="input-md"/>
+                        <button id="submitEmail"
+                                class="btn-sm btn-primary float-right">I'm interested!
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script>
+            function submitEmail(event) {
+                event.preventDefault()
+                let el = document.getElementById("subscribers")
+                if (el.checkValidity()) {
+                    el.reportValidity()
+                }
+                let emailaddress = el.value
+                if (emailaddress === "") {
+                    return
+                }
+                let host = "https://www.starqueue.org"
+                let url = new URL(`${host}/subscribers`)
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', url, true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.onreadystatechange = function () {//Call a function when the state changes.
+                    if (xhr.readyState === 4 && xhr.status === 201) {
+                        document.getElementById("subscribediv").innerHTML = "Thanks for subscribing!"
+                        console.log(xhr.responseText);
+                    }
+                }
+                xhr.send(`emailaddress=${emailaddress}`);
+            }
+
+            document.getElementById("submitEmail").addEventListener("click", submitEmail, false);
+        </script>

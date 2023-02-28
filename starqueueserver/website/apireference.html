@@ -1,0 +1,606 @@
+<!--#include file="pagetop.html" -->
+<!--#include file="banner.html" -->
+<!--#include file="menu.html" -->
+<style>
+    .apifield {
+        border: 1px solid gray;
+        padding: 8px;
+        background-color: lightcyan;
+    }
+</style>
+<br/>
+<br/>
+
+<h4>Are you planning on using StarQueue in a project? <a href="/contact.html">Let us know</a> first!</h4>
+<br/>
+<h4>You must first <a href="/createaccount.html">create an account</a>.</h4>
+<br/>
+<h4>Read this in conjunction with the <a href="/howitworks.html">How it works</a> page.</h4>
+<br/>
+<hr/>
+
+<h1 class="bg-success text-white">StarQueue API Reference</h1><br/>
+<hr/>
+<h3>Available endpoints:</h3><br/>
+<a href="#authtokenget">authtokenget</a><br/>
+<a href="#messagechangevisibility">messagechangevisibility</a><br/>
+<a href="#messagedelete">messagedelete</a><br/>
+<a href="#messagereceive">messagereceive</a><br/>
+<a href="#messagesend">messagesend</a><br/>
+<a href="#queueclear">queueclear</a><br/>
+<a href="#queueslist">queueslist</a><br/>
+<br/>
+<hr/>
+
+<h3>Making requests to the StarQueue API:</h3><br/>
+<br/>
+<ul>
+    <li>All requests must use the POST method.<br/>
+    <li>POST data must be valid json.<br/>
+    <li>Requests must include header:<br/>
+        content-type: application/json<br/>
+    <li>Most endpoints require that an accountid be provided in the URL. The accountid is given to you when you create
+        an account.
+    <li>Most endpoints require a queuename. You may use any string as a queuename. You do not need to define queuename
+        in advance.
+        <br/>
+        Max length for queuename: 80 characters<br/>
+        Min length for queuename: 1 character<br/>
+        Only these characters are valid in a queuename:<br/>
+        -0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz<br/>
+    <li>Requests must include a "Version" field in the request JSON, which defines the version of the endpoint to use,
+        currently only one version is available:<br/>
+        Example: <br/>
+        {"Version": 1}<br/>
+    <li>Requests must include header:<br/>
+        content-type: application/json<br/>
+
+    <li>All requests (excluding accountcreate and authtokenget) must include an authorization header.<br/>
+    <li>The value of the authorization header must be the string "Bearer " (notice the space) followed by an auth token.<br/>
+    <li>The auth token is obtained by sending your account password to the authtokenget endpoint.<br/>
+    <li><b>Example of header</b>:<br/>
+        <br/>
+        <pre>
+authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50aWQiOiIxMjhkMjVlMy1jMTE0LTQ2MTItODU5Ni1lMWFiMjU3MTY0OTEiLCJ0aW1lIjoxNjIzOTg1NjUxLjgyODY1NTJ9.wRfM2xJ-xAhr4kkr6qSEODrafU78LJ8E61OH8Hlzj2tBNWeVbE1xAfoNT0c-NuyJXbI2prTaITSijWJhW5wUUnzgqR863OCWb4Im7cZM1dtM1u7eAUA-YF8JSK4nzpXQWoESBBpBRnaTZnf10m0ZQhK9bcwTBXyeneRoygju-wselm9ngV0XFdDAWxWx8wUVfz6OcJfZk6w-h05ROLF_qYwtmoxiLLIDug3RolG3kAzjzNci0IQ2Iqq-7VdfWABTozbX9UPI6-78l9Jjy_fwIsoEkWaAoSRK-ulPMFUPbbhzL6eaAYG7x-Waxag6qT0KB_t_HvAJPLq3aaeWhbI_RtXRgbfgILwdi9xHiGb5cvVbXDRfNWU08o0JTFiXlL--b33n0VLcWASLzLr90sPeaaPbYw8dUEMb0BGM5NdcjitPB9KkmGHthJZ2RBcYS2QaiNvQhkzpjonPzNAeUh9dX1__rJTpaoCbCIuew6ECeKQ_CQwT6_qsMVDLkT3cOCvd<br/>
+        </pre>
+
+</ul>
+<br/>
+<hr/>
+<h3>Structure of endpoint URLs:</h3><br/>
+<br/>
+https://api.starqueue.org/authtokenget/{accountid}<br/>
+https://api.starqueue.org/messagechangevisibility/{accountid}/{queuename}<br/>
+https://api.starqueue.org/messagedelete/{accountid}/{queuename}<br/>
+https://api.starqueue.org/messagereceive/{accountid}/{queuename}<br/>
+https://api.starqueue.org/messagesend/{accountid}/{queuename}<br/>
+https://api.starqueue.org/queueclear/{accountid}/{queuename}<br/>
+https://api.starqueue.org/queueslist/{accountid}<br/>
+<br/>
+<br/>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+    <br/>
+    <h1 id="authtokenget">AuthTokenGet</h1><br/>
+    <br/>
+    Description:<br/>
+    When you <a href="/createaccount.html">create a StarQueue account</a>, you will be given a password and an
+    accountid.<br/>
+    <br/>
+    To access the endpoints of StarQueue, you do not submit your password, but instead you submit an auth token.<br/>
+    <br/>
+    You get an authtoken by submitting your password to this endpoint.<br/>
+    <br/>
+    You include an AuthToken field in the JSON body of most API requests.<br/>
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1,
+   "AccountPassword": "SuperSecret01"
+}
+</pre>
+
+    <br/>
+    JSON response example:<br/>
+    <pre>
+{
+   "AuthToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiBIUzI1NiJ9.eyJhY2NvdW50aWQiOiI4Y2ZiZmJmNi02YzJkLTQxN2UtYjUzNS05YjM3MWY2NzVkZTgiLCJ0aW1lIjoxNjIzODA1OTI3Ljk2ODYzNjV9.zHGGKUgbJUY2ktlij14OAsoklG7SpNwKaCLOLgD4Ssw"
+}
+    </pre>
+
+    <b>JSON request body fields</b>:<br/>
+    <div class="apifield">
+        AccountPassword<br/>
+        Description:<br/>
+        The password for your StarQueue account.<br/>
+        JSON Type: strings<br/>
+        Required: true<br/>
+    </div>
+    <br/>
+    <b>JSON response fields</b>:<br/>
+    <div class="apifield">
+        AuthToken<br/>
+        Description: see above<br/>
+        JSON Type: string<br/>
+    </div>
+    <br/>
+
+    <br/>
+    <br/>
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+    <br/>
+    <h1 id="messagechangevisibility">MessageChangeVisibility</h1><br/>
+    <br/>
+    Description:<br/>
+    Changes the amount of time that a message remains hidden from MessageReceive.<br/>
+    <br/>
+    Note: MessageChangeVisibility returns successful but has no effect in cases where the message<br/>
+    has a MessageDeduplicationId.<br/>
+    <br/>
+    Note: a success response is always returned, as long as the params are valid<br/>
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1
+}
+</pre>
+
+    <br/>
+    JSON response example:<br/>
+    <pre>
+{
+    "MessageChangeVisibilityResult": {}
+}
+</pre>
+
+    JSON request body fields:<br/>
+    <div class="apifield">
+        ReceiptHandles<br/>
+        Description:<br/>
+        An array of one or more (maximum 10) receipt handles.<br/>
+        See above for an explanation of ReceiptHandle<br/>
+        JSON Type: array of strings<br/>
+        Required: true<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        VisibilityTimeout<br/>
+        Description: see above<br/>
+        JSON Type: number<br/>
+        Required: true<br/>
+        Default: 30<br/>
+        Range: 0 - 43200 (12 hours max)<br/>
+    </div>
+    <br/>
+
+    <br/>
+    <br/>
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+    <br/>
+    <h1 id="messagedelete">MessageDelete</h1><br/>
+    Description:<br/>
+    To delete a message from the queue you must provide the ReceiptHandle that was returned from MessageReceive.<br/>
+    <br/>
+    Note that a success response is always returned, as long as the ReceiptHandle is a valid UUID.<br/>
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1
+}
+</pre>
+    <br/>
+    JSON response example:<br/>
+    <pre>
+        {"MessageDeleteResult": {}}
+</pre>
+    <br/>
+
+    JSON request body fields:<br/>
+    <div class="apifield">
+        ReceiptHandles<br/>
+        Description:<br/>
+        A JSON array of one or more (maximum 10) receipt handles<br/>
+        See above for an explanation of ReceiptHandle.<br/>
+        JSON Type: string<br/>
+        Required: true<br/>
+    </div>
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+    <h1 id="messagereceive">MessageReceive</h1><br/>
+    Description:<br/>
+    Receives one or more messages from a queue.<br/>
+
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1
+}
+</pre>
+    <br/>
+    JSON response example:<br/>
+    <pre>
+{
+   "MessageReceiveResult":[
+      {
+         "AccountId":"d9e0c791-cb03-44a7-b793-fe8c637e05ca",
+         "ApproximateFirstReceiveTimestamp":"2021-06-15T23:46:22.269736+00:00",
+         "ApproximateReceiveCount":1,
+         "MD5OfMessageBody":"6507848bd3c9b03f21825829ec8a97a8",
+         "MessageBody":"aGVsbG8ga2l0dHk=",
+         "MessageDeduplicationId":null,
+         "MessageId":"16ad9d2c-778c-452d-a085-7e7fc6f51fec",
+         "Priority":100,
+         "QueueName":"myexamplequeue",
+         "ReceiptHandle":"a286c9eb-0656-4228-b00c-e14f0aa0cb17",
+         "SentTimestamp":"2021-06-15T23:46:00.906373+00:00"
+      }
+   ]
+}
+</pre>
+    <br/>
+
+
+    JSON request body fields:<br/>
+    <br/>
+    <div class="apifield">
+        MaxReceives<br/>
+        Maximum number of times a message can be received.<br/>
+        If a message is present in the queue, and has already been received MaxReceives times or more,<br/>
+        then the message is deleted by the server and no message is returned, unless DeadLetterQueueName<br/>
+        is supplied in the request, in which case the message is moved to the specified DeadLetterQueueName<br/>
+        (see DeadLetterQueueName description below for more detail).<br/>
+        <br/>
+        So for example if MaxReceives is 4, then a message may be received up to 4 times in total.<br/>
+        Behind the scenes (invisible to the client), the server deletes any message the 5th time it is received.<br/>
+        i.e. if the value in the ApproximateReceiveCount column in the database is 4 then server deletes the<br/>
+        message instead of returning it to the client, and the server continues to wait for a message.<br/>
+        <br/>
+        Default: 4<br/>
+        Range: 1-10<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        DeadLetterQueueName<br/>
+        Description:<br/>
+        The DeadLetterQueueName is used by the server when MaxReceives is exceeded (see MaxReceives above).<br/>
+        If the DeadLetterQueueName request param is supplied, then instead of being deleted, the server:<br/>
+        1: changes the queue name of the message to match the DeadLetterQueueName<br/>
+        2: resets the message's ApproximateReceiveCount to 0<br/>
+        3: clears the message's MessageDeduplicationId<br/>
+        The DeadLetterQueueName cannot be the same as the current QueueName.<br/>
+        <br/>
+        Default: 4<br/>
+        Valid: see definition above for valid structure of a queuename<br/>
+        JSON Type: string<br/>
+        Required: false<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <br/>
+        MaxNumberOfMessages<br/>
+        Maximum number of messages to receive. Fewer messages may be received.<br/>
+        As soon as a single message becomes available, the queue server will grab and return as many<br/>
+        messages as are available up to the maximum defined here. So it is possible that fewer messages<br/>
+        may be returned than the specified MaxNumberOfMessages.<br/>
+        Default: 1<br/>
+        Range: 1-10<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        VisibilityTimeout<br/>
+        Description: Time in seconds that a message is hidden from MessageReceive requests.<br/>
+        Note that the default value for VisibilityTimeout is different for MessageSend.<br/>
+        VisibilityTimeout -300 is 5 minutes in the past, which means the message is immediately visible.<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+        Default: 30 (30 seconds, which means the message is hidden from other receivers for 30 seconds)<br/>
+        Valid range: -43200 to 43200 (12 hours in the past to 12 hours in the future)<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        WaitTimeSeconds<br/>
+        Description:<br/>
+        If a message is not immediately available, the server will wait for up to this number of seconds for a<br/>
+        message to appear in the queue, after which the server returns success with an empty list of messages.<br/>
+        WaitTimeSeconds is ignored if a message is immediately available.<br/>
+        Default: 20<br/>
+        Range: 0-20<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+    </div>
+    <br/>
+    <b>JSON response fields</b>:<br/>
+    <div class="apifield">
+        accountid<br/>
+        (see description above)<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        ApproximateFirstReceiveTimestamp<br/>
+        Description: time that the message was first received<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        ApproximateReceiveCount<br/>
+        Description: number of times a message has been received but not deleted<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        MD5OfMessageBody<br/>
+        Description: MD5 hash of the MessageBody<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        MessageBody<br/>
+        Description: see description above<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        MessageId<br/>
+        Description: see above<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        MessageDeduplicationId<br/>
+        Description: see above<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        Priority<br/>
+        Description: see above<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        QueueName<br/>
+        Description: see above<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        ReceiptHandle<br/>
+        Description:<br/>
+        A receipt handle is a UUID string returned from the server in response to a successful MessageReceive.<br/>
+        You must use the ReceiptHandle to identify a message when you want to perform a MessageDelete<br/>
+        or MessageChangeVisibility.<br/>
+        Length: 36 characters (bytes)<br/>
+        JSON Type: string<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        SentTimestamp<br/>
+        Description: time that the message was sent<br/>
+    </div>
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+    <br/>
+    <h1 id="messagesend">MessageSend</h1><br/>
+    Description:<br/>
+    Puts a message onto a queue.<br/>
+
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1,
+   "MessageBody":"44OP44Ot44O844Kt44OG44KjSGVsbG9LaXR0eQ=="
+}
+</pre>
+    <br/>
+    JSON response example:<br/>
+    <pre>
+{
+   "MessageSendResult":{
+      "MessageId":"42d9c717-d004-4efe-ba92-142e7fef4339",
+      "MD5OfMessageBody":"66919d2f1234aab92fce29a0508134dd"
+   }
+}
+</pre>
+
+    JSON request fields:<br/>
+    <br/>
+
+    <div class="apifield">
+        <b>MessageBody</b><br/>
+        JSON Type: string<br/>
+        Max length: 256K<br/>
+        Min length: 1 byte<br/>
+        Required: true<br/>
+        Validation: The MessageBody must be base64 encoded.<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <b>VisibilityTimeout</b><br/>
+        Description: Time in seconds that a message is hidden from MessageReceive requests.<br/>
+        Note that the default value for VisibilityTimeout is different in MessageReceive.<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+        Default: -300 (5 minutes in the past, which means the message is immediately visible)<br/>
+        Valid range: -43200 to 43200 (12 hours in the past to 12 hours in the future)<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <b>Priority</b><br/>
+        Description:<br/>
+        Messages with a higher numeric priority are received before messages with lower numeric priority<br/>
+        a message with a higher priority number will always be returned before a message with a lower<br/>
+        priority number, regardless of which message entered the queue first.<br/>
+        JSON Type: number<br/>
+        Default: 100<br/>
+        Range: 0 to 1000<br/>
+        Required: false<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <b>MessageDeduplicationId</b><br/>
+        Description:<br/>
+        If a message has a MessageDeduplicationId, then any message added to the queue with the same<br/>
+        deduplicationid, within the MessageDeduplicationTimePeriod, is accepted successfully, but is actually
+        dropped.<br/>
+        <br/>
+        When a "normal" message is deleted - i.e. a message without a MessageDeduplicationId, it is deleted<br/>
+        from the queue immediately. When a message with a MessageDeduplicationId is deleted, it remains in the<br/>
+        queue, but cannot be accessed, thus later messages sent to the queue with the same MessageDeduplicationId<br/>
+        will continue to be identified as duplicates and not added to the queue.<br/>
+        <br/>
+        When the amount of time (in seconds) specified in the MessageDeduplicationTimePeriod has elasped, the<br/>
+        message is deleted from the queue, after which time it is possible to send messages with the same<br/>
+        MessageDeduplicationId.<br/>
+        <br/>
+        Important: MessageDeduplicationId is set to NULL when a message is moved to a dead letter queue<br/>
+        <br/>
+        Note that if a message is sent with a MessageDeduplicationId, then the VisibilityTimeout is<br/>
+        always 0 or less.<br/>
+        <br/>
+        JSON Type: string<br/>
+        Max length: 128 characters(bytes)<br/>
+        Required: false<br/>
+        Valid characters: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <b>MessageDeduplicationTimePeriod</b><br/>
+        Description:<br/>
+        Time in seconds during which to discard any message sent to the queue with the same MessageDeduplicationId.<br/>
+        Note this time period continues even after the message is deleted.<br/>
+        Note that if a message is sent with a MessageDeduplicationId, then the VisibilityTimeout is always 0.<br/>
+        <br/>
+        See description of MessageDeduplicationId for more information.<br/>
+        <br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+        Default: if there is a MessageDeduplicationId then the default is 300<br/>
+        Range: 0 - 43200 (12 hours max)<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+        <b>MessageRetentionPeriod</b><br/>
+        Description:<br/>
+        Approximate time in seconds after which the server will delete the message from queue.<br/>
+        JSON Type: number<br/>
+        Required: false<br/>
+        <br/>
+        Default: 14400 (4 hours)<br/>
+        Max: 14400<br/>
+        Min: 14400<br/>
+    </div>
+    <br/>
+
+    <br/>
+    <b>JSON response fields</b>:<br/>
+    <div class="apifield">
+
+        MessageId<br/>
+        Description: system assigned MessageId<br/>
+        JSON Type: string/UUID<br/>
+    </div>
+    <br/>
+    <div class="apifield">
+
+        MD5OfMessageBody<br/>
+        Description: an MD5 hash of the MessageBody field<br/>
+        JSON Type: string/UUID<br/>
+    </div>
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+
+    <br/>
+    <h1 id="queueclear">QueueClear</h1><br/>
+    Description:<br/>
+    Unconditionally deletes all messages in queue.<br/>
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1
+}
+</pre>
+
+    <br/>
+    JSON response example:<br/>
+    <pre>
+{
+   "QueueClearResult":{}
+}
+</pre>
+
+</div>
+
+
+<br/>
+<div style="border: 12px solid lightgray;padding: 8px;">
+
+    <br/>
+    <h1 id="queueslist">QueuesList</h1><br/>
+    Description:<br/>
+    Lists the queues for a given accountid plus the approximate number of messages in the queue.<br/>
+    Note that queues are virtual - they exist only when there are messages in that queue.<br/>
+    <br/>
+    JSON request body example:<br/>
+    <pre>
+{
+   "Version": 1
+}
+</pre>
+    <br/>
+
+    JSON response example:<br/>
+    <pre>
+        {
+            "QueuesListResult": [
+                {
+                    "Count": 5,
+                    "QueueName": "anotherqueuename",
+                    "accountid": "4b849fef-2a42-45ac-acc6-19f4fcf385bf"
+                },
+                {
+                    "Count": 4,
+                    "QueueName": "examplequeuename",
+                    "accountid": "4b849fef-2a42-45ac-acc6-19f4fcf385bf"
+                }
+            ]
+        }
+</pre>
+</div>
+
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<!--#include file="pagebottom.html" -->
+
